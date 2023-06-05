@@ -186,7 +186,7 @@ void page_idex()
   if (y >= 0 && y < 40 && frame == 0 && loc == 0 && menu_ok == 0)
   {
     y = y_trg;
-    if (command == 2)
+    if (command == 2&&menu_number!=0)
     {
       y_trg = y_trg - 20;
       command = 0;
@@ -216,7 +216,7 @@ void page_idex()
       menu_number = menu_number + 1;
     }
   }
-  else if (menu_number > 2 && menu_number < 6 && frame == 0 && loc == 0 && menu_ok == 0)
+  else if (menu_number > 2 && menu_number < 8 && frame == 0 && loc == 0 && menu_ok == 0)
   {
     if (command == 1)
     {
@@ -408,7 +408,7 @@ void page_first_wifi_set()
   char drr[100];
 
   int x;
-  for (int m = 0; m <= 16; m++)
+  for (int m = 0; m <= 15; m++)
   {
     drr[m] = '0';
   }
@@ -737,11 +737,11 @@ void page_sixth()
 {
   int command;
   int time = 0;
-  int set = 0;
+  int set_time = 0;
   int set_open = 0;
   int set_close = 0;
-  char* close_dw;
-  char* open_dw;
+  char* close_dw="";
+  char* open_dw="";
   for (;;)
   {
     u8g2.clearBuffer();
@@ -762,23 +762,13 @@ void page_sixth()
     u8g2.print(open_minutes);
     u8g2.setCursor(105, 35);
     u8g2.print(open_seconds);
-    u8g2.drawRFrame(4, y_page_third, 54, 20, 2);
-    if (set == 1)
+    u8g2.drawRFrame(4, y_page_sixth, 54, 20, 2);
+    if (set_time == 1)
     {
       u8g2.setCursor(5, 55);
       u8g2.print("定时关闭操作,单位:");
       u8g2.setCursor(5, 100);
       u8g2.print(close_dw);
-    }
-    else if (set == 2)
-    {
-      u8g2.setCursor(5, 55);
-      u8g2.print("定时打开操作,单位:");
-      u8g2.setCursor(5, 100);
-      u8g2.print(open_dw);
-    }
-    if (set == 1)
-    {
       switch (set_close)
       {
         case 1:
@@ -792,8 +782,12 @@ void page_sixth()
           break;
       }
     }
-    else if (set == 1)
+    else if (set_time == 2)
     {
+      u8g2.setCursor(5, 55);
+      u8g2.print("定时打开操作,单位:");
+      u8g2.setCursor(5, 100);
+      u8g2.print(open_dw);
       switch (set_open)
       {
         case 1:
@@ -807,32 +801,33 @@ void page_sixth()
           break;
       }
     }
+    
     u8g2.sendBuffer();
     command = get_command();
-    if (command == 1 && set == 0)
+    if (command == 1 && set_time == 0&&location==0)
     {
       command = 0;
       y_page_sixth = y_page_sixth_trg;
-      y_page_sixth_trg = y_page_sixth + 20;
+      y_page_sixth_trg = y_page_sixth_trg + 20;
       menu_sixth_number = menu_sixth_number + 1;
     }
-    else if (command == 2 && set == 0)
+    else if (command == 2 && set_time == 0&&location==0)
     {
       command = 0;
       y_page_sixth = y_page_sixth_trg;
-      y_page_sixth_trg = y_page_sixth - 20;
+      y_page_sixth_trg = y_page_sixth_trg - 20;
       menu_sixth_number = menu_sixth_number - 1;
     }
-    else if (command == 3 && menu_sixth_number == 0 && set_close == 0)
+    else if (command == 3 && menu_sixth_number == 0 && set_close == 0&&location==0)
     {
       command = 0;
-      set = 1;
-      set_close = 1;
+      set_time=2;
+      set_close=1;
     }
-    else if (command == 3 && menu_sixth_number == 1 && set_open == 0)
+    else if (command == 3 && menu_sixth_number == 1 && set_open == 0&&location==0)
     {
       command = 0;
-      set = 2;
+      set_time = 2;
       set_open = 1;
     }
     else if (command == 3 && menu_sixth_number == 0 && set_close != 0)
@@ -857,7 +852,7 @@ void page_sixth()
       set_open = 0;
       time_open = 1;
     }
-    else if (command == 1 && set == 1)
+    else if (command == 1 && set_time == 1)
     {
       command == 0;
       switch (set_open)
@@ -873,7 +868,7 @@ void page_sixth()
           break;
       }
     }
-    else if (command == 2 && set == 1)
+    else if (command == 2 && set_time == 1)
     {
       command == 0;
       switch (set_open)
@@ -889,7 +884,7 @@ void page_sixth()
           break;
       }
     }
-    else if (command == 1 && set == 2)
+    else if (command == 1 && set_time == 2)
     {
       command == 0;
       switch (set_close)
@@ -905,7 +900,7 @@ void page_sixth()
           break;
       }
     }
-    else if (command == 2 && set == 2)
+    else if (command == 2 && set_time == 2)
     {
       command == 0;
       switch (set_close)
@@ -921,6 +916,12 @@ void page_sixth()
           break;
       }
     }
+      else if(command==4)
+      {
+        command=0;
+        break;
+      }
+
   }
 
 }

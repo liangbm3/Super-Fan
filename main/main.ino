@@ -30,8 +30,8 @@ void setup(void)//初始化
 }
 void loop(void)
 {
-  Serial.println(humidity);
-  Serial.println(temperature);
+  Serial.println(y_page_sixth);
+  Serial.println(y_page_sixth_trg);
   Serial.println(menu_fourth_number);
   Serial.println(password);
   Serial.println(wifi);
