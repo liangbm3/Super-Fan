@@ -110,6 +110,9 @@ volatile int32_t time_close = 0;
 volatile int32_t open_show = 0;
 volatile int32_t close_show = 0;
 
+//壁纸变量
+volatile int32_t photos=0;
+
 /*******************声明********************/
 
 //声明多任务句柄
@@ -122,6 +125,7 @@ TaskHandle_t task_page_first_handle = NULL;
 TaskHandle_t task_wifi_handle = NULL;
 TaskHandle_t task_fan_handle = NULL;
 TaskHandle_t task_timer_handle = NULL;
+TaskHandle_t task_main_handle = NULL;
 TickType_t timeOut = 1000; //用于获取信号量的Timeout 1000 ticks
 
 //声明任务

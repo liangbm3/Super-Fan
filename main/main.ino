@@ -30,10 +30,9 @@ void setup(void)//初始化
 }
 void loop(void)
 {
-  Serial.println(y_page_sixth);
-  Serial.println(y_page_sixth_trg);
-  Serial.println(menu_fourth_number);
-  Serial.println(password);
-  Serial.println(wifi);
+  Serial.println(open_seconds);
+  Serial.println(time_open);
+  Serial.println(close_show);
+  
   vTaskDelay(1000);
 }

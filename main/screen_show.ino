@@ -39,12 +39,12 @@ void task_welcome(void *pd)
       }
       else
       {
-        xTaskCreatePinnedToCore(task_page_index,
-                                "task_page_index",
-                                1024 * 100,
+        xTaskCreatePinnedToCore(task_main,
+                                "task_main",
+                                1024 * 50,
                                 NULL,
                                 1,
-                                &task_page_index_handle,
+                                &task_main_handle,
                                 1);
         xTaskCreatePinnedToCore(task_turn,
                                 "task_turn",
@@ -77,6 +77,33 @@ void task_welcome(void *pd)
 
 }
 
+void task_main(void *pt)
+{
+  u8g2.begin();//启用u8g2库
+   u8g2.setFont(u8g2_font_wqy12_t_gb2312a);
+  u8g2.enableUTF8Print();
+  int command;
+  for (;;)
+  {
+    command=get_command();
+    if(command!=0)
+    {
+      xTaskCreatePinnedToCore(task_page_index,
+                        "task_page_index",
+                        1024 * 50,
+                        NULL,
+                        1,
+                        &task_page_index_handle,
+                        1);
+      vTaskDelete(NULL);
+    }
+    u8g2.clearBuffer();
+    u8g2.drawXBMP(0, 0, 64, 64, main_2);
+    u8g2.sendBuffer();
+    vTaskDelay(20);
+  }
+  
+}
 /*定义一个任务，在oled上显示菜单*/
 void task_page_index(void *pd)
 {
@@ -183,6 +210,11 @@ void page_idex()
     command = 0;
     page_sixth();
   }
+  else if (menu_number == 6 && command == 3)
+  {
+    command = 0;
+    page_seventh();
+  }
   if (y >= 0 && y < 40 && frame == 0 && loc == 0 && menu_ok == 0)
   {
     y = y_trg;
@@ -233,7 +265,18 @@ void page_idex()
       menu_number = menu_number - 1;
     }
   }
-
+  if(command==4)
+  {
+    command=0;
+    xTaskCreatePinnedToCore(task_page_index,
+                      "task_page_index",
+                      1024 * 100,
+                      NULL,
+                      1,
+                      &task_page_index_handle,
+                      1);
+    vTaskDelete(NULL);
+  }
   menu_draw();
   frame_w_trg = list[menu_number].len * 12 + 2;
   u8g2.drawRFrame(frame_x, y + 3, frame_w, frame_h, 2);
@@ -740,10 +783,12 @@ void page_sixth()
   int set_time = 0;
   int set_open = 0;
   int set_close = 0;
-  char* close_dw="";
-  char* open_dw="";
+  char* close_dw;
+  char* open_dw;
   for (;;)
   {
+    Serial.println(set_open);
+    Serial.println(command);
     u8g2.clearBuffer();
     short location = move(&y_page_sixth, &y_page_sixth_trg, 6);
     u8g2.setCursor(5, 15);
@@ -763,14 +808,13 @@ void page_sixth()
     u8g2.setCursor(105, 35);
     u8g2.print(open_seconds);
     u8g2.drawRFrame(4, y_page_sixth, 54, 20, 2);
-    if (set_time == 1)
+    if (set_time == 2)
     {
-      u8g2.setCursor(5, 55);
-      u8g2.print("定时关闭操作,单位:");
-      u8g2.setCursor(5, 100);
-      u8g2.print(close_dw);
       switch (set_close)
       {
+        case 0:
+          close_dw = "";
+          break;
         case 1:
           close_dw = "h";
           break;
@@ -781,15 +825,19 @@ void page_sixth()
           close_dw = "s";
           break;
       }
-    }
-    else if (set_time == 2)
-    {
       u8g2.setCursor(5, 55);
-      u8g2.print("定时打开操作,单位:");
+      u8g2.print("定时关闭,单位:");
       u8g2.setCursor(5, 100);
-      u8g2.print(open_dw);
+      u8g2.print(close_dw);
+      
+    }
+    else if (set_time == 1)
+    {
       switch (set_open)
       {
+        case 0:
+          open_dw = "";
+          break;
         case 1:
           open_dw = "h";
           break;
@@ -800,9 +848,18 @@ void page_sixth()
           open_dw = "s";
           break;
       }
-    }
-    
+      u8g2.setCursor(5, 55);
+      u8g2.print("定时打开,单位:");
+      u8g2.setCursor(5, 100);
+      u8g2.print(open_dw);
+      
+    }    
     u8g2.sendBuffer();
+    if(command==4)
+    {
+      command=0;
+      break;
+    }
     command = get_command();
     if (command == 1 && set_time == 0&&location==0)
     {
@@ -827,34 +884,32 @@ void page_sixth()
     else if (command == 3 && menu_sixth_number == 1 && set_open == 0&&location==0)
     {
       command = 0;
-      set_time = 2;
+      set_time = 1;
       set_open = 1;
     }
-    else if (command == 3 && menu_sixth_number == 0 && set_close != 0)
+    else if (command == 3 && menu_sixth_number == 0 && set_close != 0&&set_close <4)
     {
-      command == 0;
+      command = 0;
       set_close = set_close + 1;
     }
-    else if (command == 3 && menu_sixth_number == 1 && set_open != 0)
+    else if (command == 3 && menu_sixth_number == 1 && set_open != 0&&set_open<4)
     {
-      command == 0;
+      command = 0;
       set_open = set_open + 1;
     }
     else if (command == 3 && menu_sixth_number == 0 && set_close == 4)
     {
-      command == 0;
-      set_close = 0;
       time_close = 1;
+      command = 4;
     }
     else if (command == 3 && menu_sixth_number == 1 && set_open == 4)
     {
-      command == 0;
-      set_open = 0;
       time_open = 1;
+      command = 4;
     }
     else if (command == 1 && set_time == 1)
     {
-      command == 0;
+      command = 0;
       switch (set_open)
       {
         case 1:
@@ -870,7 +925,7 @@ void page_sixth()
     }
     else if (command == 2 && set_time == 1)
     {
-      command == 0;
+      command = 0;
       switch (set_open)
       {
         case 1:
@@ -886,7 +941,7 @@ void page_sixth()
     }
     else if (command == 1 && set_time == 2)
     {
-      command == 0;
+      command = 0;
       switch (set_close)
       {
         case 1:
@@ -916,12 +971,16 @@ void page_sixth()
           break;
       }
     }
-      else if(command==4)
-      {
-        command=0;
-        break;
-      }
 
   }
 
+}
+
+void page_seventh()
+{
+  int command;
+  for(;;)
+  {
+
+  }
 }

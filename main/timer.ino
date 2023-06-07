@@ -31,8 +31,6 @@ void task_timer(void *pt)
       if (xTimerStart(close_handle, 3000) == pdPASS)
       {
         close_show = 1;
-        Serial.println(closeTime);
-        vTaskDelay(100);
       }
     }
     
