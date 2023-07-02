@@ -2,12 +2,14 @@
 int32_t get_command()
 {
   int state = 0;
+  unsigned long privious_tick = 0;
+unsigned long current_tick;
   down_state = digitalRead(Down);
   up_state = digitalRead(Up);
   ok_state = digitalRead(Ok);
   comeback_state = digitalRead(Comeback);
   current_tick = xTaskGetTickCount();
-  if ((current_tick - privious_tick) >= delay_time)
+  if ((current_tick - privious_tick) >= 30)
   {
     if ((down_state == HIGH) && (down_state_last == LOW))
     {
@@ -45,6 +47,8 @@ int32_t get_command()
 /*定义一个任务，每两秒更新一次温度和湿度*/
 void task_sensor(void *pt)
 {
+  unsigned long sensor_current_tick;
+unsigned long sensor_privious_tick = 0;
   dht.begin(); // 启动传感器
   for (;;)
   {

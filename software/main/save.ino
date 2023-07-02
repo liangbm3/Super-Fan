@@ -12,6 +12,8 @@ void task_data_save(void *pt)
   int32_t second_keys;
   int32_t third_keys;
   int32_t fourth_keys;
+  int32_t key_states;
+  int32_t photoss;
   String password_string;
   String password_strings;
   Preferences data;
@@ -25,6 +27,8 @@ void task_data_save(void *pt)
   second_key = data.getInt("second_key", 1);
   third_key = data.getInt("third_key", 3);
   fourth_key = data.getInt("fourth_key", 4);
+  key_state = data.getInt("key_state", 0);
+  photos = data.getInt("photos", 1);
   password_string = data.getString("password", "12345678");
   const char* password_cstr = password_string.c_str();
   password = new char[strlen(password_cstr) + 1]; // 分配内存
@@ -44,8 +48,11 @@ void task_data_save(void *pt)
       second_keys = data.getInt("second_key", 1);
       third_keys = data.getInt("third_key", 3);
       fourth_keys = data.getInt("fourth_key", 4);
-      password_strings = data.getString("fourth_key", "12345678");
+      key_states = data.getInt("key_state", 0);
+      photoss = data.getInt(" photos", 1);
+      password_strings = data.getString("password", "12345678");
       password_string = password;
+      Serial.println(password_string);
       if (fan_speeds != fan_speed)
       {
         fan_speeds = fan_speed;
@@ -91,10 +98,20 @@ void task_data_save(void *pt)
         fourth_keys = fourth_key;
         data.putInt("fourth_key", fourth_key);
       }
+      else if ( photoss !=  photos)
+      {
+        photoss = photos;
+        data.putInt("photos",  photos);
+      }
       else if (password_strings != password_string)
       {
         password_strings = password_string;
         data.putString("password", password_string);
+      }
+       else if (key_states!= key_state)
+      {
+        key_states = key_state;
+        data.putInt("key_state", key_state);
       }
       last = current;
     }

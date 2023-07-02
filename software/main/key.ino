@@ -9,13 +9,13 @@ void task_key(void *pd)
     int key = key_main();
     if (key == 1)
     {
-        xTaskCreatePinnedToCore(task_main,
-                                "task_main",
-                                1024 * 50,
-                                NULL,
-                                1,
-                                &task_main_handle,
-                                1);
+      xTaskCreatePinnedToCore(task_page_index,
+                              "task_page_index",
+                              1024 * 50,
+                              NULL,
+                              1,
+                              &task_page_index_handle,
+                              1);
       xTaskCreatePinnedToCore(task_turn,
                               "task_turn",
                               1024 * 4,
@@ -135,8 +135,8 @@ int change_key()
           {
             task_key_print(4);
             fourth = four;
-            second_key = first;
-            first_key = second;
+            second_key = second;
+            first_key =first;
             third_key = third;
             fourth_key = fourth;
             vTaskDelay(200);

@@ -30,9 +30,7 @@ void setup(void)//初始化
 }
 void loop(void)
 {
-  Serial.println(open_seconds);
   Serial.println(time_open);
-  Serial.println(close_show);
-  
+
   vTaskDelay(1000);
 }

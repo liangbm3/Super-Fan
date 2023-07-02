@@ -1,6 +1,7 @@
 /*定义一个风扇任务，根据速度调整输出脉宽*/
 void task_fan(void *pt)
 {
+
   float count = pow(2, 12);
   ledcSetup(pwm_fan, 1000, 12);
   ledcAttachPin(Fan, pwm_fan);
@@ -31,7 +32,14 @@ void task_fan(void *pt)
     }
     else if (fan_mode == 1)
     {
-      fan_duty = map(temperature, fan_min, fan_max, (int)(0.4 * count), (int)count);
+      if (temperature > 24)
+      {
+        fan_duty = map(temperature, fan_min, fan_max, (int)(0.4 * count), (int)count);
+      }
+      else
+      {
+        fan_duty = 0;
+      }
     }
     ledcWrite(pwm_fan, fan_duty);
     vTaskDelay(200);

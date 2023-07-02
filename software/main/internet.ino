@@ -45,7 +45,8 @@ void task_wifi(void *pt)
   }
 }
 
-void handleRootPage(AsyncWebServerRequest *request) {
+void handleRootPage(AsyncWebServerRequest *request) 
+{
   // 构建网页内容
   String htmlContent = "<html><head>";
   htmlContent += "<title>超智能小风扇</title>";
@@ -79,7 +80,8 @@ void handleRootPage(AsyncWebServerRequest *request) {
 }
 
 // 处理数据请求的函数
-void handleDataRequest(AsyncWebServerRequest *request) {
+void handleDataRequest(AsyncWebServerRequest *request) 
+{
   // 构建 JSON 格式的数据
   String data = "{";
   data += "\"temperature\": \"" + String(temperature) + " °C\",";
@@ -95,7 +97,8 @@ void handleDataRequest(AsyncWebServerRequest *request) {
 }
 
 // 处理命令请求的函数
-void handleCommandRequest(AsyncWebServerRequest *request) {
+void handleCommandRequest(AsyncWebServerRequest *request) 
+{
   if (request->hasParam("cmd")) {
     // 获取命令参数值
     String command = request->getParam("cmd")->value();

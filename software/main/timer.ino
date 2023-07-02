@@ -1,3 +1,5 @@
+/********************************本文件是与定时相关代码*********************************/
+/*定义一个定时任务，定时开启或关闭风扇*/
 void task_timer(void *pt)
 {
   unsigned long openTime;
@@ -23,7 +25,7 @@ void task_timer(void *pt)
     {
       time_close = 0;
       closeTime = 1000 * (60 * 60 * close_hours + 60 * close_minutes + close_seconds);
-      open_handle = xTimerCreate("open_fan",
+      close_handle = xTimerCreate("close_fan",
                                  closeTime,
                                  pdFALSE,
                                  (void *)1,
@@ -33,15 +35,17 @@ void task_timer(void *pt)
         close_show = 1;
       }
     }
-    
+
   }
 }
 
+/*风扇开启函数*/
 void open_fan(TimerHandle_t xTimer)
 {
-  fan_speed = 5;
+  fan_speed = 4;
 }
 
+/*风扇关闭函数*/
 void close_fan(TimerHandle_t xTimer)
 {
   fan_speed = 0;

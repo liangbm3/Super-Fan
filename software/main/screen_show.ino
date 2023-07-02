@@ -1,16 +1,18 @@
+/******************************本文件是与OLED屏幕显示相关代码*******************************/
+
 /*定义一个任务，开机显示欢迎界面，并开启密码验证任务，传感器任务，风扇任务，舵机任务*/
 void task_welcome(void *pd)
 {
   u8g2.begin();//启用u8g2库
-  unsigned long  now = xTaskGetTickCount();
-  for (;;)
+  unsigned long  now = xTaskGetTickCount();//获取当前时钟时间
+  for (;;)//一直循环2s
   {
-    u8g2.clearBuffer();
-    u8g2.drawXBMP(0, 0, 128, 64, welcome_page);
-    u8g2.sendBuffer();
-    if (xTaskGetTickCount() - now > 2000)
+    u8g2.clearBuffer();//清屏
+    u8g2.drawXBMP(0, 0, 128, 64, welcome_page);//绘制欢迎界面
+    u8g2.sendBuffer();//发送缓存
+    if (xTaskGetTickCount() - now > 2000)//判断时间是否大于2s
     {
-
+      //开启传感器任务
       xTaskCreatePinnedToCore(task_sensor,
                               "task_sensor",
                               1024 * 4,
@@ -18,6 +20,7 @@ void task_welcome(void *pd)
                               1,
                               &task_sensor_handle,
                               1);
+      //开启定时任务
       xTaskCreatePinnedToCore(task_timer,
                               "task_timer",
                               1024 * 5,
@@ -26,8 +29,9 @@ void task_welcome(void *pd)
                               &task_timer_handle,
                               1);
 
-      if (key_state == 1)
+      if (key_state == 1)//判断是否设置了密码
       {
+        //开启密码验证任务
         xTaskCreatePinnedToCore(task_key,
                                 "task_key",
                                 1024 * 5,
@@ -39,13 +43,15 @@ void task_welcome(void *pd)
       }
       else
       {
-        xTaskCreatePinnedToCore(task_main,
-                                "task_main",
-                                1024 * 50,
+        //开启显示任务
+        xTaskCreatePinnedToCore(task_page_index,
+                                "task_page_index",
+                                1024 * 60,
                                 NULL,
                                 1,
-                                &task_main_handle,
+                                &task_page_index_handle,
                                 1);
+        //开启舵机任务
         xTaskCreatePinnedToCore(task_turn,
                                 "task_turn",
                                 1024 * 4,
@@ -53,6 +59,7 @@ void task_welcome(void *pd)
                                 1,
                                 NULL,
                                 1);
+        //开启风扇任务
         xTaskCreatePinnedToCore(task_fan,
                                 "task_fan",
                                 1024 * 5,
@@ -60,8 +67,9 @@ void task_welcome(void *pd)
                                 1,
                                 &task_fan_handle,
                                 1);
-        if (wifi == 1)
+        if (wifi == 1)//判断WiFi是否开启
         {
+          //开启WiFi任务
           xTaskCreatePinnedToCore( task_wifi,
                                    "task_wifi",
                                    1024 * 20,
@@ -71,53 +79,91 @@ void task_welcome(void *pd)
                                    0);
         }
       }
-      vTaskDelete(NULL);
+      vTaskDelete(NULL);//删除任务
     }
   }
 
 }
 
-void task_main(void *pt)
+/*用来OLED主页显示*/
+void task_main()
 {
-  u8g2.begin();//启用u8g2库
-   u8g2.setFont(u8g2_font_wqy12_t_gb2312a);
-  u8g2.enableUTF8Print();
-  int command;
-  for (;;)
+  u8g2.clearBuffer();//清屏
+  switch (photos)//判断哪张壁纸
   {
-    command=get_command();
-    if(command!=0)
-    {
-      xTaskCreatePinnedToCore(task_page_index,
-                        "task_page_index",
-                        1024 * 50,
-                        NULL,
-                        1,
-                        &task_page_index_handle,
-                        1);
-      vTaskDelete(NULL);
-    }
-    u8g2.clearBuffer();
-    u8g2.drawXBMP(0, 0, 64, 64, main_2);
-    u8g2.sendBuffer();
-    vTaskDelay(20);
+    case 1:
+      u8g2.drawXBMP(0, 0, 64, 64, main_1);
+      break;
+    case 2:
+      u8g2.drawXBMP(0, 0, 64, 64, main_2);
+      break;
+    case 3:
+      u8g2.drawXBMP(0, 0, 64, 64, main_3);
+      break;
+    case 4:
+      u8g2.drawXBMP(0, 0, 64, 64, main_4);
+      break;
+    case 5:
+      u8g2.drawXBMP(0, 0, 64, 64, main_5);
+      break;
+    case 6:
+      u8g2.drawXBMP(0, 0, 64, 64, main_6);
+      break;
+    case 7:
+      u8g2.drawXBMP(0, 0, 64, 64, main_7);
+      break;
+    case 8:
+      u8g2.drawXBMP(0, 0, 64, 64, main_8);
+      break;
+    case 9:
+      u8g2.drawXBMP(0, 0, 64, 64, main_9);
+      break;
+    case 10:
+      u8g2.drawXBMP(0, 0, 64, 64, main_10);
+      break;
+    case 11:
+      u8g2.drawXBMP(0, 0, 64, 64, main_11);
+      break;
   }
-  
+  //温度、湿度显示
+  u8g2.setCursor(75, 15);
+  u8g2.print("温度/℃");
+  u8g2.setCursor(75, 15 + 16);
+  u8g2.print(temperature);
+  u8g2.setCursor(75, 15 + 16 * 2);
+  u8g2.print("湿度/%");
+  u8g2.setCursor(75, 15 + 16 * 3);
+  u8g2.print(humidity);
+  u8g2.sendBuffer();
+  int command = get_command();//获取按键数据
+  if (command != 0)
+  {
+    Stateh = 1;
+  }
+
 }
-/*定义一个任务，在oled上显示菜单*/
+
+/*定义一个任务，控制OLED显示*/
 void task_page_index(void *pd)
 {
-  int state = 0;
   u8g2.begin();//启用u8g2库
-  u8g2.setFont(u8g2_font_wqy12_t_gb2312a);
-  u8g2.enableUTF8Print();
+  u8g2.setFont(u8g2_font_wqy12_t_gb2312a);//设置字体
+  u8g2.enableUTF8Print();//允许中文显示
   frame_w = list[menu_number].len * 12; //初始化方框宽度
   frame_w_trg = list[menu_number].len * 12; //初始化方框目标值
-  menu_first_number = 0;
   for (;;)
   {
     u8g2.clearBuffer();
-    page_idex();
+    switch (Stateh)
+    {
+      case 0:
+        task_main();
+        break;
+
+      case 1:
+        page_idex();
+        break;
+    }
     u8g2.sendBuffer();
     vTaskDelay(200);
   }
@@ -169,7 +215,7 @@ void page_idex()
 {
 
   short frame = move(&frame_w, &frame_w_trg, 10);
-  short loc = move(&y, &y_trg, 6);
+  short loc = move(&y, &y_trg, 8);
   short menu_ok = move(&menu_y, &menu_y_trg, 8);
   int command = get_command();
   if (menu_number == 0 && command == 3)
@@ -215,10 +261,15 @@ void page_idex()
     command = 0;
     page_seventh();
   }
+  else if (menu_number == 7 && command == 3)
+  {
+    command = 0;
+    page_eighth();
+  }
   if (y >= 0 && y < 40 && frame == 0 && loc == 0 && menu_ok == 0)
   {
     y = y_trg;
-    if (command == 2&&menu_number!=0)
+    if (command == 2 && menu_number != 0)
     {
       y_trg = y_trg - 20;
       command = 0;
@@ -250,7 +301,7 @@ void page_idex()
   }
   else if (menu_number > 2 && menu_number < 8 && frame == 0 && loc == 0 && menu_ok == 0)
   {
-    if (command == 1)
+    if (command == 1 && menu_number != 7)
     {
       menu_y = menu_y_trg;
       menu_y_trg = menu_y_trg + 20;
@@ -265,18 +316,11 @@ void page_idex()
       menu_number = menu_number - 1;
     }
   }
-  if(command==4)
+  if (command == 4)
   {
-    command=0;
-    xTaskCreatePinnedToCore(task_page_index,
-                      "task_page_index",
-                      1024 * 100,
-                      NULL,
-                      1,
-                      &task_page_index_handle,
-                      1);
-    vTaskDelete(NULL);
+    Stateh = 0;
   }
+
   menu_draw();
   frame_w_trg = list[menu_number].len * 12 + 2;
   u8g2.drawRFrame(frame_x, y + 3, frame_w, frame_h, 2);
@@ -297,14 +341,14 @@ void page_first()
     {
       int command = get_command();
 
-      if (command == 2)
+      if (command == 2 && menu_first_number != 0)
       {
         y_page_first = y_page_first_trg;
         y_page_first_trg = y_page_first_trg - 20;
         menu_first_number = menu_first_number - 1;
         command = 0;
       }
-      else if (command == 1)
+      else if (command == 1 && menu_first_number != 2)
       {
         y_page_first = y_page_first_trg;
         y_page_first_trg = y_page_first_trg + 20;
@@ -482,12 +526,12 @@ void page_first_wifi_set()
     }
     else if (command == 1)
     {
-      letter = letter + 1;
+      letter = letter - 1;
       command = 0;
     }
     else if (command == 2)
     {
-      letter = letter - 1;
+      letter = letter + 1;
       command = 0;
     }
     else if (command == 4)
@@ -518,11 +562,11 @@ void page_second()
     u8g2.print(fan_speed);
     u8g2.sendBuffer();
     command = get_command();
-    if (command == 1 && fan_speed >= 0 && fan_speed <= 4)
+    if (command == 1 && fan_speed != 0)
     {
       fan_speed = fan_speed - 1;
     }
-    else if (command == 2 && fan_speed >= 0 && fan_speed <= 4)
+    else if (command == 2 && fan_speed != 4)
     {
       fan_speed = fan_speed + 1;
     }
@@ -606,14 +650,14 @@ void page_third()
     if (location == 0)
     {
       int command = get_command();
-      if (command == 1 && set == 0)
+      if (command == 1 && set == 0 && menu_third_number != 1)
       {
         y_page_third = y_page_third_trg;
         y_page_third_trg = y_page_third_trg + 20;
         menu_third_number = menu_third_number + 1;
         command = 0;
       }
-      else if (command == 2 && set == 0)
+      else if (command == 2 && set == 0 && menu_third_number != 1)
       {
         y_page_third = y_page_third_trg;
         y_page_third_trg = y_page_third_trg - 20;
@@ -712,6 +756,8 @@ void page_fourth()
     u8g2.sendBuffer();
   }
 }
+
+/*显示菜单五，设置密码*/
 void page_fifth(void)
 {
   int command;
@@ -776,6 +822,7 @@ void page_fifth(void)
   }
 }
 
+/*显示菜单六，定时操作*/
 void page_sixth()
 {
   int command;
@@ -812,24 +859,25 @@ void page_sixth()
     {
       switch (set_close)
       {
+          Serial.println(set_close);
         case 0:
           close_dw = "";
           break;
         case 1:
-          close_dw = "h";
+          close_dw = "时";
           break;
         case 2:
-          close_dw = "min";
+          close_dw = "分";
           break;
         case 3:
-          close_dw = "s";
+          close_dw = "秒";
           break;
       }
       u8g2.setCursor(5, 55);
       u8g2.print("定时关闭,单位:");
-      u8g2.setCursor(5, 100);
+      u8g2.setCursor(100, 55);
       u8g2.print(close_dw);
-      
+
     }
     else if (set_time == 1)
     {
@@ -850,49 +898,49 @@ void page_sixth()
       }
       u8g2.setCursor(5, 55);
       u8g2.print("定时打开,单位:");
-      u8g2.setCursor(5, 100);
+      u8g2.setCursor(100, 55);
       u8g2.print(open_dw);
-      
-    }    
+
+    }
     u8g2.sendBuffer();
-    if(command==4)
+    if (command == 4)
     {
-      command=0;
+      command = 0;
       break;
     }
     command = get_command();
-    if (command == 1 && set_time == 0&&location==0)
+    if (command == 1 && set_time == 0 && location == 0 &&  menu_sixth_number != 1)
     {
       command = 0;
       y_page_sixth = y_page_sixth_trg;
       y_page_sixth_trg = y_page_sixth_trg + 20;
       menu_sixth_number = menu_sixth_number + 1;
     }
-    else if (command == 2 && set_time == 0&&location==0)
+    else if (command == 2 && set_time == 0 && location == 0 && menu_sixth_number != 0)
     {
       command = 0;
       y_page_sixth = y_page_sixth_trg;
       y_page_sixth_trg = y_page_sixth_trg - 20;
       menu_sixth_number = menu_sixth_number - 1;
     }
-    else if (command == 3 && menu_sixth_number == 0 && set_close == 0&&location==0)
+    else if (command == 3 && menu_sixth_number == 0 && set_close == 0 && location == 0)
     {
       command = 0;
-      set_time=2;
-      set_close=1;
+      set_time = 2;
+      set_close = 1;
     }
-    else if (command == 3 && menu_sixth_number == 1 && set_open == 0&&location==0)
+    else if (command == 3 && menu_sixth_number == 1 && set_open == 0 && location == 0)
     {
       command = 0;
       set_time = 1;
       set_open = 1;
     }
-    else if (command == 3 && menu_sixth_number == 0 && set_close != 0&&set_close <4)
+    else if (command == 3 && menu_sixth_number == 0 && set_close != 0 && set_close < 4)
     {
       command = 0;
       set_close = set_close + 1;
     }
-    else if (command == 3 && menu_sixth_number == 1 && set_open != 0&&set_open<4)
+    else if (command == 3 && menu_sixth_number == 1 && set_open != 0 && set_open < 4)
     {
       command = 0;
       set_open = set_open + 1;
@@ -913,22 +961,6 @@ void page_sixth()
       switch (set_open)
       {
         case 1:
-          open_hours = open_hours + 1;
-          break;
-        case 2:
-          open_minutes = open_minutes + 10;
-          break;
-        case 3:
-          open_seconds = open_seconds + 1;
-          break;
-      }
-    }
-    else if (command == 2 && set_time == 1)
-    {
-      command = 0;
-      switch (set_open)
-      {
-        case 1:
           open_hours = open_hours - 1;
           break;
         case 2:
@@ -939,25 +971,25 @@ void page_sixth()
           break;
       }
     }
-    else if (command == 1 && set_time == 2)
+    else if (command == 2 && set_time == 1)
     {
       command = 0;
-      switch (set_close)
+      switch (set_open)
       {
         case 1:
-          close_hours = close_hours + 1;
+          open_hours = open_hours + 1;
           break;
         case 2:
-          close_minutes = close_minutes + 10;
+          open_minutes = open_minutes + 10;
           break;
         case 3:
-          close_seconds = close_seconds + 1;
+          open_seconds = open_seconds + 1;
           break;
       }
     }
-    else if (command == 2 && set_time == 2)
+    else if (command == 1 && set_time == 2)
     {
-      command == 0;
+      command = 0;
       switch (set_close)
       {
         case 1:
@@ -971,16 +1003,74 @@ void page_sixth()
           break;
       }
     }
+    else if (command == 2 && set_time == 2)
+    {
+      command == 0;
+      switch (set_close)
+      {
+        case 1:
+          close_hours = close_hours + 1;
+          break;
+        case 2:
+          close_minutes = close_minutes + 10;
+          break;
+        case 3:
+          close_seconds = close_seconds + 1;
+          break;
+      }
+    }
 
   }
 
 }
 
+/*显示菜单七，壁纸设置*/
 void page_seventh()
 {
-  int command;
-  for(;;)
+  int command = 0;
+  for (;;)
   {
+    u8g2.clearBuffer();
+    u8g2.setCursor(40, 15);
+    u8g2.print("当前壁纸");
+    u8g2.setCursor(60, 35);
+    u8g2.print(photos);
+    u8g2.sendBuffer();
+    command = get_command();
+    if (command == 1 && photos != 0)
+    {
+      photos = photos - 1;
+    }
+    else if (command == 2 && photos != 11)
+    {
+      photos = photos + 1;
+    }
+    if (command == 4)
+    {
+      break;
+    }
+  }
+}
 
+/*显示菜单八，本机信息*/
+void page_eighth()
+{
+  for (;;)
+  {
+    u8g2.clearBuffer();
+    u8g2.setCursor(10, 15);
+    u8g2.print("名称:");
+    u8g2.setCursor(10, 15 + 16);
+    u8g2.print("LCW小风扇");
+    u8g2.setCursor(10, 15 + 16 * 2);
+    u8g2.print("版本:");
+    u8g2.setCursor(10, 15 + 16 * 3);
+    u8g2.print("v1.0.0 ");
+    u8g2.setCursor(10, 15 + 16 * 4);
+    u8g2.sendBuffer();
+    if (get_command() == 4)
+    {
+      break;
+    }
   }
 }
