@@ -19,6 +19,7 @@
 
 **相关库链接**
 
+-ESP32库，开源地址：https://github.com/espressif/arduino-esp32
 - u8g2库，开源地址：https://github.com/olikraus/u8g2
 - WiFi库，开源地址：https://www.arduino.cc/reference/en/libraries/wifi
 - 存储库，地址：https://github.com/vshymanskyy/Preferences
