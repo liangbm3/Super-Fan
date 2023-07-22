@@ -26,6 +26,6 @@
 - DHT传感器库，开源地址：https://github.com/adafruit/DHT-sensor-library
 - 异步服务器库，开源地址：https://github.com/dvarrel/AsyncTCP
 
-**相关库链接**
+**联系方式**
 
 邮箱：3095088766@qq.com
